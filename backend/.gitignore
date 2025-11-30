@@ -1,0 +1,60 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+.pnpm-store/
+
+# Build output
+dist/
+build/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Env & secrets
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+src/config/env.ts 
+# Logs
+logs/
+*.log
+logs.txt
+debug.log
+error.log
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+.idea/
+*.iml
+
+# Temporary
+tmp/
+temp/
+*.tmp
+.cache/
+.cache-loader/
+
+# Prisma (if using)
+prisma/migrations/*
+!.keep
+
+# Docker
+docker-data/
