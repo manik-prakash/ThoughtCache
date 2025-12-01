@@ -1,28 +1,29 @@
 import { Brain, LayoutDashboard, Plus, FolderOpen, Tag, Share2, Settings, LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar } from '../ui/Avatar';
+import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
   currentView: string;
-  onNavigate: (view: string) => void;
   onLogout: () => void;
   userDisplayName?: string;
   userAvatar?: string | null;
 }
 
-export function Sidebar({ currentView, onNavigate, onLogout, userDisplayName, userAvatar }: SidebarProps) {
+export function Sidebar({ currentView, onLogout, userDisplayName, userAvatar }: SidebarProps) {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { id: 'new', label: 'New Item', icon: <Plus size={20} /> },
-    { id: 'collections', label: 'Collections', icon: <FolderOpen size={20} /> },
-    { id: 'tags', label: 'Tags', icon: <Tag size={20} /> },
-    { id: 'shared', label: 'Shared', icon: <Share2 size={20} /> },
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
+    { id: 'new', label: 'New Item', icon: <Plus size={20} />, path: '/new' },
+    { id: 'collections', label: 'Collections', icon: <FolderOpen size={20} />, path: '/collections' },
+    { id: 'tags', label: 'Tags', icon: <Tag size={20} />, path: '/tags' },
+    { id: 'shared', label: 'Shared', icon: <Share2 size={20} />, path: '/shared' },
   ];
 
   const bottomItems = [
-    { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
+    { id: 'settings', label: 'Settings', icon: <Settings size={20} />, path: '/settings' },
   ];
 
   const toggleSidebar = () => setIsOpen(!isOpen);
@@ -74,7 +75,7 @@ export function Sidebar({ currentView, onNavigate, onLogout, userDisplayName, us
             <button
               key={item.id}
               onClick={() => {
-                onNavigate(item.id);
+                navigate(item.path);
                 setIsOpen(false);
               }}
               className={`
@@ -97,7 +98,7 @@ export function Sidebar({ currentView, onNavigate, onLogout, userDisplayName, us
             <button
               key={item.id}
               onClick={() => {
-                onNavigate(item.id);
+                navigate(item.path);
                 setIsOpen(false);
               }}
               className={`

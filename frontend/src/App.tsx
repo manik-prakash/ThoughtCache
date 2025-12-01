@@ -1,5 +1,5 @@
-import React, { useEffect} from 'react';
-import {BrowserRouter,Routes,Route,Navigate,useLocation,useNavigate,useParams} from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -14,8 +14,6 @@ import { Settings } from './pages/Settings';
 import { AppShell } from './components/layout/AppShell';
 import { Spinner } from './components/ui/Spinner';
 
-type View ='landing'| 'login'| 'signup'| 'dashboard'| 'new'| 'edit'| 'item'| 'settings'| 'shared';
-
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -27,224 +25,12 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
       </div>
     );
   }
+  
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+  
   return children;
-}
-
-function AppRouter() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const getViewFromPath = (pathname: string): View => {
-    if (pathname.startsWith('/shared/')) return 'shared';
-    if (pathname === '/login') return 'login';
-    if (pathname === '/signup') return 'signup';
-    if (pathname === '/dashboard' || pathname === '/') return user ? 'dashboard' : 'landing';
-    if (pathname === '/new') return 'new';
-    if (pathname.startsWith('/edit')) return 'edit';
-    if (pathname.startsWith('/item')) return 'item';
-    if (pathname === '/settings') return 'settings';
-    if (pathname === '/collections') return 'collections' as View;
-    if (pathname === '/tags') return 'tags' as View;
-    return 'landing';
-  };
-
-  const currentView = getViewFromPath(location.pathname);
-
-  useEffect(() => {
-    if (!loading && user && location.pathname === '/') {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [loading, user, location.pathname, navigate]);
-
-  const isPublicRoute = currentView === 'landing' || currentView === 'login' || currentView === 'signup' || currentView === 'shared';
-  
-  if (isPublicRoute || !user) {
-    return (
-      <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Landing onGetStarted={() => navigate('/signup')} />} />
-        <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login onSwitchToSignup={() => navigate('/signup')} />} />
-        <Route path="/signup" element={user ? <Navigate to="/dashboard" replace /> : <Signup onSwitchToLogin={() => navigate('/login')} />} />
-        <Route path="/shared/:slug" element={<PublicSharedWrapper />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    );
-  }
-
-  return (
-    <AppShell currentView={currentView} onNavigate={(view: string, itemId?: string) => {
-      switch (view) {
-        case 'dashboard':
-          navigate('/dashboard');
-          break;
-        case 'new':
-          navigate('/new');
-          break;
-        case 'edit':
-          if (itemId) navigate(`/edit/${itemId}`);
-          break;
-        case 'item':
-          if (itemId) navigate(`/item/${itemId}`);
-          break;
-        case 'settings':
-          navigate('/settings');
-          break;
-        default:
-          navigate('/');
-      }
-    }}>
-      <Routes>
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard onNavigate={(v: string, id?: string) => {
-                switch (v) {
-                  case 'dashboard':
-                    navigate('/dashboard');
-                    break;
-                  case 'new':
-                    navigate('/new');
-                    break;
-                  case 'edit':
-                    if (id) {
-                      console.log('Navigating to edit page with id:', id);
-                      navigate(`/edit/${id}`);
-                    } else {
-                      console.error('Edit navigation called without id');
-                    }
-                    break;
-                  case 'item':
-                    if (id) navigate(`/item/${id}`);
-                    break;
-                  case 'settings':
-                    navigate('/settings');
-                    break;
-                  default:
-                    navigate('/');
-                }
-              }} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/new"
-          element={
-            <ProtectedRoute>
-              <ItemForm key="new-item" onNavigate={() => navigate('/dashboard')} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/edit/:id"
-          element={
-            <ProtectedRoute>
-              <EditItemWrapper />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/item/:id"
-          element={
-            <ProtectedRoute>
-              <ItemDetailsWrapper />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Coming soon pages */}
-        <Route
-          path="/collections"
-          element={
-            <ProtectedRoute>
-              <ComingSoon title="collections" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tags"
-          element={
-            <ProtectedRoute>
-              <ComingSoon title="tags" />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </AppShell>
-  );
-}
-
-function EditItemWrapper() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  console.log('EditItemWrapper - id from params:', id);
-  console.log('EditItemWrapper - current location:', location.pathname);
-  
-  if (!id) {
-    console.error('EditItemWrapper: No id parameter found in URL, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return (
-    <ItemForm 
-      itemId={id} 
-      onNavigate={(view: string) => {
-        if (view === 'dashboard') {
-          navigate('/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
-      }} 
-    />
-  );
-}
-
-function ItemDetailsWrapper() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  
-  if (!id) return <Navigate to="/dashboard" replace />;
-  
-  return (
-    <ItemDetails 
-      itemId={id} 
-      onNavigate={(view: string, itemId?: string) => {
-        switch (view) {
-          case 'dashboard':
-            navigate('/dashboard');
-            break;
-          case 'edit':
-            if (itemId) navigate(`/edit/${itemId}`);
-            break;
-          case 'item':
-            if (itemId) navigate(`/item/${itemId}`);
-            break;
-          default:
-            navigate('/dashboard');
-        }
-      }} 
-    />
-  );
-}
-
-function PublicSharedWrapper() {
-  const { slug } = useParams<{ slug: string }>();
-  if (!slug) return <Navigate to="/" replace />;
-  return <PublicShared slug={slug} />;
 }
 
 function ComingSoon({ title }: { title: string }) {
@@ -255,6 +41,150 @@ function ComingSoon({ title }: { title: string }) {
     </div>
   );
 }
+
+// Wrapper components that use React Router
+function DashboardWrapper() {
+  const navigate = useNavigate();
+  
+  return (
+    <Dashboard 
+      onNavigate={(view, id) => {
+        if (view === 'new') navigate('/new');
+        else if (view === 'edit' && id) navigate(`/edit/${id}`);
+        else if (view === 'item' && id) navigate(`/item/${id}`);
+      }} 
+    />
+  );
+}
+
+function ItemFormWrapper() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  
+  return (
+    <ItemForm 
+      itemId={id} 
+      onNavigate={() => navigate('/dashboard')} 
+    />
+  );
+}
+
+function ItemDetailsWrapper() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  if (!id) return <Navigate to="/dashboard" replace />;
+
+  return (
+    <ItemDetails
+      itemId={id}
+      onNavigate={(view, itemId) => {
+        if (view === 'dashboard') navigate('/dashboard');
+        else if (view === 'edit' && itemId) navigate(`/edit/${itemId}`);
+        else if (view === 'item' && itemId) navigate(`/item/${itemId}`);
+      }}
+    />
+  );
+}
+
+function PublicSharedWrapper() {
+  const { slug } = useParams<{ slug: string }>();
+  if (!slug) return <Navigate to="/" replace />;
+  return <PublicShared slug={slug} />;
+}
+
+function AppRouter() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  // Public routes (no auth required, no AppShell)
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/" element={<Landing onGetStarted={() => navigate('/signup')} />} />
+        <Route path="/login" element={<Login onSwitchToSignup={() => navigate('/signup')} />} />
+        <Route path="/signup" element={<Signup onSwitchToLogin={() => navigate('/login')} />} />
+        <Route path="/shared/:slug" element={<PublicSharedWrapper />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
+  // Protected routes (wrapped in AppShell)
+  return (
+    <AppShell>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <DashboardWrapper />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/new" 
+          element={
+            <ProtectedRoute>
+              <ItemFormWrapper />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/edit/:id" 
+          element={
+            <ProtectedRoute>
+              <ItemFormWrapper />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/item/:id" 
+          element={
+            <ProtectedRoute>
+              <ItemDetailsWrapper />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/collections" 
+          element={
+            <ProtectedRoute>
+              <ComingSoon title="Collections" />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/tags" 
+          element={
+            <ProtectedRoute>
+              <ComingSoon title="Tags" />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </AppShell>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>

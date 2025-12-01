@@ -1,24 +1,38 @@
 import { type ReactNode, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../lib/httpClient';
 import type { ProfileResponse } from '../../lib/types';
 
 interface AppShellProps {
-  currentView: string;
-  onNavigate: (view: string) => void;
   children: ReactNode;
 }
 
-export function AppShell({ currentView, onNavigate, children }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const { user, signOut } = useAuth();
+  const location = useLocation();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
+
+  const getCurrentView = (pathname: string): string => {
+    if (pathname === '/dashboard' || pathname === '/') return 'dashboard';
+    if (pathname === '/new') return 'new';
+    if (pathname.startsWith('/edit')) return 'edit';
+    if (pathname.startsWith('/item')) return 'item';
+    if (pathname === '/settings') return 'settings';
+    if (pathname === '/collections') return 'collections';
+    if (pathname === '/tags') return 'tags';
+    return 'dashboard';
+  };
+
+  const currentView = getCurrentView(location.pathname);
 
   useEffect(() => {
     if (!user) {
       setProfile(null);
       return;
     }
+    
     const fetchProfile = async () => {
       try {
         const data = await api.get<ProfileResponse>('/profile');
@@ -28,6 +42,7 @@ export function AppShell({ currentView, onNavigate, children }: AppShellProps) {
         setProfile(null);
       }
     };
+    
     fetchProfile();
   }, [user]);
 
@@ -35,7 +50,6 @@ export function AppShell({ currentView, onNavigate, children }: AppShellProps) {
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar
         currentView={currentView}
-        onNavigate={onNavigate}
         onLogout={signOut}
         userDisplayName={profile?.display_name || user?.email || 'User'}
         userAvatar={profile?.avatar_url}
