@@ -54,6 +54,7 @@ const itemSchema = new Schema<IItem>(
     share_slug: {
       type: String,
       default: null,
+      sparse: true
     },
   },
   {
