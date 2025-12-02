@@ -72,7 +72,7 @@ export function Landing({ onGetStarted }: LandingProps) {
 
       <footer className="border-t border-gray-200 mt-16 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600">
-          <p>Second Brain &copy; 2025. Built for knowledge seekers.</p>
+          <p>Second Brain &copy; 2025. Built by Manik.</p>
         </div>
       </footer>
     </div>
