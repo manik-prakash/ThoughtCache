@@ -62,10 +62,10 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       role="alert"
     >
       {icons[toast.type]}
-      <p className="flex-1 text-sm text-[#e6edf3]">{toast.message}</p>
+      <p className="flex-1 text-sm text-text-primary">{toast.message}</p>
       <button
         onClick={() => onRemove(toast.id)}
-        className="p-1 text-[#8b9ba7] hover:text-[#e6edf3] rounded transition-colors"
+        className="p-1 text-text-muted hover:text-text-primary rounded transition-colors"
         aria-label="Close notification"
       >
         <X size={16} />

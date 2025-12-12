@@ -73,7 +73,7 @@ export function PublicShared({ slug }: PublicSharedProps) {
         <nav className="bg-[#11181f] border-b border-[#1a232c]">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-2">
             <Brain className="text-[#0acffe]" size={32} />
-            <span className="text-xl font-bold text-text-primary">Second Brain</span>
+            <span className="text-xl font-bold text-text-primary">ThoughtCache</span>
           </div>
         </nav>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
@@ -136,7 +136,7 @@ export function PublicShared({ slug }: PublicSharedProps) {
             href="/"
             className="inline-block px-6 py-3 gradient-aqua text-[#0a0f14] rounded-lg font-medium hover:opacity-90 transition-opacity"
           >
-            Get Started with Second Brain
+            Get Started with ThoughtCache
           </a>
         </div>
       </main>

@@ -63,7 +63,7 @@ export function TagInput({ selectedTags, availableTags, onTagsChange, onCreateTa
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-[#8b9ba7]">Tags</label>
+      <label className="block text-sm font-medium text-text-muted">Tags</label>
 
       {selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-2">

@@ -59,7 +59,7 @@ export function Login({ onSwitchToSignup }: LoginProps) {
       <div className="w-full max-w-md bg-[#11181f] rounded-lg shadow-xl p-8 border border-[#1a232c]">
         <div className="flex items-center justify-center gap-2 mb-8">
           <Brain className="text-[#0acffe]" size={32} />
-          <span className="text-2xl font-bold text-text-primary">Second Brain</span>
+          <span className="text-2xl font-bold text-text-primary">ThoughtCache</span>
         </div>
         <h1 className="text-3xl font-bold text-text-primary mb-2 text-center">Welcome Back</h1>
         <p className="text-text-muted mb-8 text-center">Sign in to access your knowledge base</p>

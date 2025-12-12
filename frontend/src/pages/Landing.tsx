@@ -12,7 +12,7 @@ export function Landing({ onGetStarted }: LandingProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center border-b border-[#1a232c]">
           <div className="flex items-center gap-2">
             <Brain className="text-[#0acffe]" size={32} />
-            <span className="text-xl font-bold text-text-primary">Second Brain</span>
+            <span className="text-xl font-bold text-text-primary">ThoughtCache</span>
           </div>
           <Button onClick={onGetStarted} size="sm">
             Get Started
@@ -72,7 +72,7 @@ export function Landing({ onGetStarted }: LandingProps) {
 
       <footer className="border-t border-[#1a232c] mt-16 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-text-muted">
-          <p>Second Brain &copy; 2025. Built by Manik.</p>
+          <p>ThoughtCache &copy; 2025. Built by Manik.</p>
         </div>
       </footer>
     </div>

@@ -32,7 +32,7 @@ export function Sidebar({ currentView, onLogout, userDisplayName, userAvatar }: 
     <>
       <button
         onClick={toggleSidebar}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[#11181f] rounded-lg shadow-lg border border-[#1a232c] hover:bg-[#1a232c] text-[#e6edf3]"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[#11181f] rounded-lg shadow-lg border border-[#1a232c] hover:bg-[#1a232c] text-text-primary"
         aria-label="Toggle menu"
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -51,13 +51,13 @@ export function Sidebar({ currentView, onLogout, userDisplayName, userAvatar }: 
         <div className="p-6 border-b border-[#1a232c]">
           <div className="flex items-center gap-2 mb-6">
             <Brain className="text-[#0acffe]" size={32} />
-            <span className="text-xl font-bold text-[#e6edf3]">Second Brain</span>
+            <span className="text-xl font-bold text-text-primary">ThoughtCache</span>
           </div>
 
           <div className="flex items-center gap-3">
             <Avatar src={userAvatar} alt={userDisplayName || 'User'} size="md" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-[#e6edf3] truncate">
+              <p className="text-sm font-medium text-text-primary truncate">
                 {userDisplayName || 'User'}
               </p>
             </div>
@@ -77,7 +77,7 @@ export function Sidebar({ currentView, onLogout, userDisplayName, userAvatar }: 
                 transition-colors
                 ${currentView === item.id
                   ? 'bg-[#0acffe]/10 text-[#0acffe] border-r-2 border-[#0acffe]'
-                  : 'text-[#8b9ba7] hover:bg-[#1a232c]'
+                  : 'text-text-muted hover:bg-[#1a232c]'
                 }
               `}
             >
@@ -100,7 +100,7 @@ export function Sidebar({ currentView, onLogout, userDisplayName, userAvatar }: 
                 transition-colors
                 ${currentView === item.id
                   ? 'bg-[#0acffe]/10 text-[#0acffe] border-r-2 border-[#0acffe]'
-                  : 'text-[#8b9ba7] hover:bg-[#1a232c]'
+                  : 'text-text-muted hover:bg-[#1a232c]'
                 }
               `}
             >

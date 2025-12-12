@@ -59,7 +59,7 @@ export function DropdownItem({ children, onClick, icon, className = '' }: Dropdo
   return (
     <button
       onClick={onClick}
-      className={`w-full px-4 py-2 text-left text-sm text-[#e6edf3] hover:bg-[#11181f] flex items-center gap-2 transition-colors ${className}`}
+      className={`w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-[#11181f] flex items-center gap-2 transition-colors ${className}`}
       role="menuitem"
     >
       {icon}

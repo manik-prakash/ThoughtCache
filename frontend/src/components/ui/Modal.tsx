@@ -62,12 +62,12 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       >
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#1a232c]">
-            <h2 id="modal-title" className="text-xl font-semibold text-[#e6edf3]">
+            <h2 id="modal-title" className="text-xl font-semibold text-text-primary">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="p-1 text-[#8b9ba7] hover:text-[#e6edf3] rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#0acffe]"
+              className="p-1 text-text-muted hover:text-text-primary rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#0acffe]"
               aria-label="Close modal"
             >
               <X size={20} />

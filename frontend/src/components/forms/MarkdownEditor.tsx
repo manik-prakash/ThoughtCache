@@ -37,7 +37,7 @@ export function MarkdownEditor({ value, onChange, label, placeholder }: Markdown
     <div>
       {label && (
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium text-[#8b9ba7]">{label}</label>
+          <label className="block text-sm font-medium text-text-muted">{label}</label>
           <Button
             type="button"
             variant="ghost"
@@ -62,7 +62,7 @@ export function MarkdownEditor({ value, onChange, label, placeholder }: Markdown
 
       {isPreview ? (
         <div
-          className="min-h-[200px] p-3 border border-[#1a232c] rounded-lg bg-[#11181f] prose prose-sm max-w-none text-[#e6edf3]"
+          className="min-h-[200px] p-3 border border-[#1a232c] rounded-lg bg-[#11181f] prose prose-sm max-w-none text-text-primary"
           dangerouslySetInnerHTML={{ __html: renderMarkdown(value) }}
         />
       ) : (
