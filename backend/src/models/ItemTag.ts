@@ -24,7 +24,7 @@ const itemTagSchema = new Schema<IItemTag>(
 );
 
 
-// Cascade delete: remove ItemTag when item is deleted
+
 itemTagSchema.post('findOneAndDelete', async function (doc) {
   if (doc) {
     await model('ItemTag').deleteMany({ item_id: doc.item_id });

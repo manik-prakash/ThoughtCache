@@ -13,12 +13,10 @@ export const listItems = async (req: AuthRequest, res: Response): Promise<void> 
 
     let query: any = { user_id: userId };
 
-    // Filter by type
     if (type && type !== 'all') {
       query.type = type;
     }
 
-    // Search in title, content
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -28,7 +26,6 @@ export const listItems = async (req: AuthRequest, res: Response): Promise<void> 
 
     const items = await Item.find(query).sort({ created_at: -1 });
 
-    // Get tags for each item
     const itemsWithTags = await Promise.all(
       items.map(async (item) => {
         const itemTags = await ItemTag.find({ item_id: item._id });
@@ -74,7 +71,6 @@ export const getItem = async (req: AuthRequest, res: Response): Promise<void> =>
       return;
     }
 
-    // Get tags
     const itemTags = await ItemTag.find({ item_id: item._id });
     const tagIds = itemTags.map((it) => it.tag_id);
     const tags = await Tag.find({ _id: { $in: tagIds } });
@@ -128,7 +124,6 @@ export const createItem = async (req: AuthRequest, res: Response): Promise<void>
 
     await item.save();
 
-    // Handle tags
     if (tag_ids && Array.isArray(tag_ids) && tag_ids.length > 0) {
       const itemTags = tag_ids.map((tagId: string) => ({
         item_id: item._id,
@@ -137,7 +132,6 @@ export const createItem = async (req: AuthRequest, res: Response): Promise<void>
       await ItemTag.insertMany(itemTags);
     }
 
-    // Get tags for response
     const itemTags = await ItemTag.find({ item_id: item._id });
     const tagIds = itemTags.map((it) => it.tag_id);
     const tags = await Tag.find({ _id: { $in: tagIds } });
@@ -178,33 +172,26 @@ export const updateItem = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    // Track if is_public changed from false to true
     const wasPublic = item.is_public;
     const isBecomingPublic = is_public === true && !wasPublic;
 
-    // Update fields
     if (title !== undefined) item.title = title;
     if (content !== undefined) item.content = content;
     if (type !== undefined) item.type = type;
     if (source_url !== undefined) item.source_url = source_url;
     if (is_public !== undefined) item.is_public = is_public;
 
-    // Handle share_slug
     if (is_public && (isBecomingPublic || !item.share_slug)) {
-      // Generate slug if becoming public or doesn't have one
       const slugToUse = share_slug || generateSlug(item.title);
       item.share_slug = await ensureUniqueSlug(slugToUse, id);
     } else if (is_public && share_slug && share_slug !== item.share_slug) {
-      // Custom slug provided
       item.share_slug = await ensureUniqueSlug(share_slug, id);
     } else if (!is_public) {
-      // Making private, remove slug
       item.share_slug = null;
     }
 
     await item.save();
 
-    // Update tags
     if (tag_ids !== undefined) {
       await ItemTag.deleteMany({ item_id: item._id });
       if (Array.isArray(tag_ids) && tag_ids.length > 0) {
@@ -216,7 +203,6 @@ export const updateItem = async (req: AuthRequest, res: Response): Promise<void>
       }
     }
 
-    // Get tags for response
     const itemTags = await ItemTag.find({ item_id: item._id });
     const tagIds = itemTags.map((it) => it.tag_id);
     const tags = await Tag.find({ _id: { $in: tagIds } });
@@ -256,7 +242,6 @@ export const deleteItem = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    // Delete associated tags
     await ItemTag.deleteMany({ item_id: id });
 
     res.json({ success: true, message: 'Item deleted successfully' });
@@ -279,7 +264,6 @@ export const toggleStar = async (req: AuthRequest, res: Response): Promise<void>
     item.is_starred = !item.is_starred;
     await item.save();
 
-    // Get tags for response
     const itemTags = await ItemTag.find({ item_id: item._id });
     const tagIds = itemTags.map((it) => it.tag_id);
     const tags = await Tag.find({ _id: { $in: tagIds } });

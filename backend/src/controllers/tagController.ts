@@ -28,7 +28,6 @@ export const createTag = async (req: AuthRequest, res: Response): Promise<void> 
     const { name, color } = req.body;
     const userId = new mongoose.Types.ObjectId(req.user!.id);
 
-    // Check if tag already exists for this user
     const existingTag = await Tag.findOne({ user_id: userId, name: name.trim() });
     if (existingTag) {
       res.status(400).json({ error: 'Tag with this name already exists' });

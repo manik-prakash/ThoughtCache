@@ -9,25 +9,21 @@ export const signup = async (req: AuthRequest, res: Response): Promise<void> => 
   try {
     const { email, password, displayName } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(400).json({ error: 'Email already registered' });
       return;
     }
 
-    // Create user
     const user = new User({ email, password });
     await user.save();
 
-    // Create profile
     const profile = new Profile({
       user_id: (user._id as any),
       display_name: displayName || email.split('@')[0] || 'User',
     });
     await profile.save();
 
-    // Generate token
     const token = generateToken((user._id as any).toString());
 
     res.status(201).json({
@@ -52,24 +48,20 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
-    // Find user and include password
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
 
-    // Compare password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
 
-    // Get profile
     const profile = await Profile.findOne({ user_id: (user._id as any) });
 
-    // Generate token
     const token = generateToken((user._id as any).toString());
 
     res.json({
@@ -87,8 +79,6 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
 };
 
 export const logout = async (req: AuthRequest, res: Response): Promise<void> => {
-  // JWT is stateless, so we just return success
-  // In production, you might want to implement token blacklisting
   res.json({ success: true, message: 'Logged out successfully' });
 };
 

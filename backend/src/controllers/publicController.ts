@@ -13,7 +13,6 @@ export const getSharedItem = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Get tags
     const itemTags = await ItemTag.find({ item_id: item._id });
     const tagIds = itemTags.map((it) => it.tag_id);
     const tags = await Tag.find({ _id: { $in: tagIds } });

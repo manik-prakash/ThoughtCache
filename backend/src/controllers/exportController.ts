@@ -9,13 +9,9 @@ export const exportData = async (req: AuthRequest, res: Response): Promise<void>
   try {
     const userId = new mongoose.Types.ObjectId(req.user!.id);
 
-    // Get all items
     const items = await Item.find({ user_id: userId });
-
-    // Get all tags
     const tags = await Tag.find({ user_id: userId });
 
-    // Get tags for each item
     const itemsWithTags = await Promise.all(
       items.map(async (item) => {
         const itemTags = await ItemTag.find({ item_id: item._id });
