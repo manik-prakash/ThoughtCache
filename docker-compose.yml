@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: ThoughtCache-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=ThoughtCache
+    networks:
+      - ThoughtCache-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ThoughtCache-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/ThoughtCache
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=3000
+      - JWT_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost
+    depends_on:
+      - mongodb
+    networks:
+      - ThoughtCache-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ThoughtCache-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=/api
+    depends_on:
+      - backend
+    networks:
+      - ThoughtCache-network
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  ThoughtCache-network:
+    driver: bridge
