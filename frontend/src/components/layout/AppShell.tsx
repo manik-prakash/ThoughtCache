@@ -22,6 +22,7 @@ export function AppShell({ children }: AppShellProps) {
     if (pathname === '/settings') return 'settings';
     if (pathname === '/collections') return 'collections';
     if (pathname === '/tags') return 'tags';
+    if (pathname === '/shared') return 'shared';
     return 'dashboard';
   };
 
