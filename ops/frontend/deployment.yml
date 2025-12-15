@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend-space
+
+---
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: thoughtcache-frontend
+  namespace: frontend-space
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thoughtcache-frontend
+  template:
+    metadata:
+      labels:
+        app: thoughtcache-frontend
+    spec:
+      containers:
+      - name: frontend-image
+        image: manikprakash/thoughtcache-frontend:v1
+        env:
+        - name: VITE_API_BASE_URL
+          value: /api
+        ports:
+        - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Service 
+metadata:
+  name: thoughtcache-frontend-service
+  namespace: frontend-space
+spec: 
+  selector:
+    app: thoughtcache-frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP
