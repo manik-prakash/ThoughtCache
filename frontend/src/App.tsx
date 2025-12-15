@@ -100,6 +100,7 @@ function ItemDetailsWrapper() {
 function PublicSharedWrapper() {
   const { slug } = useParams<{ slug: string }>();
   if (!slug) return <Navigate to="/" replace />;
+  console.log(slug);
   return <PublicShared slug={slug} />;
 }
 
