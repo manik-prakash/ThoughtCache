@@ -13,6 +13,7 @@ import { Settings } from './pages/Settings';
 import { Tags } from './pages/Tags';
 import { Collections } from './pages/Collections';
 import { Shared } from './pages/Shared';
+import { Ask } from './pages/Ask';
 import { AppShell } from './components/layout/AppShell';
 import { Spinner } from './components/ui/Spinner';
 import './App.css';
@@ -193,6 +194,14 @@ function AppRouter() {
           element={
             <ProtectedRoute>
               <SharedWrapper />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ask"
+          element={
+            <ProtectedRoute>
+              <Ask />
             </ProtectedRoute>
           }
         />

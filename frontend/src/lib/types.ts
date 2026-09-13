@@ -54,3 +54,17 @@ export interface ExportResponse {
   tags: Tag[];
 }
 
+export interface RagSource {
+  item_id: string;
+  title: string;
+  chunk_index: number;
+  snippet: string;
+  score: number;
+}
+
+export interface RagQueryResponse {
+  answer: string;
+  sources: RagSource[];
+  has_context: boolean;
+}
+

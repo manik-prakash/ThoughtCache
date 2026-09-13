@@ -45,6 +45,8 @@ spec:
             secretKeyRef:
               name: backend-secret
               key: cors-origin
+        - name: RAG_SERVICE_URL
+          value: http://thoughtcache-rag-service.rag-space.svc.cluster.local:8000
         ports:
         - containerPort: 3000
 

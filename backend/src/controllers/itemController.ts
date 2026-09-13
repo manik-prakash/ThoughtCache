@@ -5,6 +5,7 @@ import { ItemTag } from '../models/ItemTag';
 import { Tag } from '../models/Tag';
 import { generateSlug, ensureUniqueSlug } from '../utils/slug';
 import { escapeRegex } from '../utils/regex';
+import * as ragClient from '../utils/ragClient';
 import mongoose from 'mongoose';
 
 export const listItems = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -160,6 +161,15 @@ export const createItem = async (req: AuthRequest, res: Response): Promise<void>
         color: tag.color,
       })),
     });
+
+    ragClient
+      .ingestItem({
+        id: (item._id as any).toString(),
+        user_id: item.user_id.toString(),
+        title: item.title,
+        content: item.content,
+      })
+      .catch(() => {});
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to create item', message: error.message });
   }
@@ -234,6 +244,15 @@ export const updateItem = async (req: AuthRequest, res: Response): Promise<void>
         color: tag.color,
       })),
     });
+
+    ragClient
+      .ingestItem({
+        id: (item._id as any).toString(),
+        user_id: item.user_id.toString(),
+        title: item.title,
+        content: item.content,
+      })
+      .catch(() => {});
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to update item', message: error.message });
   }
@@ -253,6 +272,8 @@ export const deleteItem = async (req: AuthRequest, res: Response): Promise<void>
     await ItemTag.deleteMany({ item_id: id });
 
     res.json({ success: true, message: 'Item deleted successfully' });
+
+    ragClient.deleteItemChunks(id).catch(() => {});
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to delete item', message: error.message });
   }

@@ -23,6 +23,7 @@ export function AppShell({ children }: AppShellProps) {
     if (pathname === '/collections') return 'collections';
     if (pathname === '/tags') return 'tags';
     if (pathname === '/shared') return 'shared';
+    if (pathname === '/ask') return 'ask';
     return 'dashboard';
   };
 

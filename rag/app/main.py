@@ -1,22 +1,60 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-app = FastAPI()
+from contextlib import asynccontextmanager
 
-class Payload(BaseModel):
-    postID: str
-    userID: str
-    title: str
-    content: str
+from fastapi import FastAPI, HTTPException
+
+from app.embeddings import get_model
+from app.rag_service import answer_question, ingest_item
+from app.schemas import (
+    IngestPayload,
+    IngestResponse,
+    QueryPayload,
+    QueryResponse,
+)
+from app.vectorstore import delete_item_chunks
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    get_model()  # warm the embedding model once at startup, not on first request
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
 
 @app.get("/health")
-def read_root():
-    return {"fastAPI backend working"}
-
-@app.post("/ingest")
-async def pre(payload:Payload):
-    text = payload.content
-    title = payload.title
-    full_text = f"{title}\n\n{text}"
+def health():
+    return {"status": "ok"}
 
 
-    return {"success": full_text}
+# Handlers are deliberately plain `def`, not `async def`: sentence-transformers,
+# the Chroma client, and the Gemini SDK are all synchronous/blocking calls.
+# FastAPI runs sync `def` path operations in a threadpool automatically, which
+# keeps the event loop free without extra boilerplate.
+
+@app.post("/ingest", response_model=IngestResponse)
+def ingest(payload: IngestPayload):
+    try:
+        count = ingest_item(payload.item_id, payload.user_id, payload.title, payload.content)
+        return IngestResponse(success=True, chunks_indexed=count)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/items/{item_id}")
+def delete_item(item_id: str):
+    try:
+        delete_item_chunks(item_id)
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/query", response_model=QueryResponse)
+def query(payload: QueryPayload):
+    if not payload.question.strip():
+        raise HTTPException(status_code=400, detail="question is required")
+    try:
+        return answer_question(payload.user_id, payload.question)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

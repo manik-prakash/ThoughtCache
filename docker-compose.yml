@@ -28,8 +28,23 @@ services:
       - PORT=3000
       - JWT_EXPIRES_IN=7d
       - CORS_ORIGIN=http://localhost
+      - RAG_SERVICE_URL=http://rag:8000
     depends_on:
       - mongodb
+      - rag
+    networks:
+      - ThoughtCache-network
+
+  rag:
+    build:
+      context: ./rag
+      dockerfile: Dockerfile
+    container_name: ThoughtCache-rag
+    restart: unless-stopped
+    env_file:
+      - ./rag/.env
+    environment:
+      - PORT=8000
     networks:
       - ThoughtCache-network
 

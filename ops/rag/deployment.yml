@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rag-space
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thoughtcache-rag
+  namespace: rag-space
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thoughtcache-rag
+  template:
+    metadata:
+      labels:
+        app: thoughtcache-rag
+    spec:
+      containers:
+      - name: rag-image
+        image: manikprakash/thoughtcache-rag:v1
+        env:
+        - name: PORT
+          value: "8000"
+        - name: CHROMA_COLLECTION_NAME
+          value: thoughtcache_items
+        - name: EMBEDDING_MODEL_NAME
+          value: all-MiniLM-L6-v2
+        - name: GEMINI_MODEL
+          value: gemini-2.5-flash
+        - name: CHROMA_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rag-secret
+              key: chroma-api-key
+        - name: CHROMA_TENANT
+          valueFrom:
+            secretKeyRef:
+              name: rag-secret
+              key: chroma-tenant
+        - name: CHROMA_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: rag-secret
+              key: chroma-database
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rag-secret
+              key: gemini-api-key
+        ports:
+        - containerPort: 8000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thoughtcache-rag-service
+  namespace: rag-space
+spec:
+  selector:
+    app: thoughtcache-rag
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
