@@ -29,7 +29,7 @@ const tagSchema = new Schema<ITag>(
   }
 );
 
-
+tagSchema.index({ user_id: 1, name: 1 }, { unique: true });
 
 export const Tag = model<ITag>('Tag', tagSchema);
 

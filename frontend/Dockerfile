@@ -15,7 +15,12 @@ RUN npm run build
 FROM nginx:alpine AS prod
 
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf 
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Where nginx proxies /api requests to. Resolved via envsubst at container
+# start, so the same image works against docker-compose's "backend" service
+# or a Kubernetes Service DNS name — override with -e/env in each environment.
+ENV BACKEND_UPSTREAM=backend:3000
 
 EXPOSE 80
 

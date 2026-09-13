@@ -38,17 +38,6 @@ export function ItemForm({ itemId, onNavigate }: ItemFormProps) {
 
   const showSourceUrl = type === 'link' || type === 'bookmark';
 
-  const generateSlug = useCallback((text: string) => {
-    const baseSlug = text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .substring(0, 50);
-
-    const timestamp = Date.now().toString(36);
-    return `${baseSlug}-${timestamp}`;
-  }, []);
-
   const resetForm = useCallback(() => {
     setTitle('');
     setContent('');
@@ -182,10 +171,9 @@ export function ItemForm({ itemId, onNavigate }: ItemFormProps) {
         type,
         source_url: sourceUrl.trim() || null,
         is_public: isPublic,
-        share_slug: isPublic ? shareSlug.trim() : generateSlug(title),
+        share_slug: isPublic ? shareSlug.trim() : null,
         tag_ids: selectedTags.map((tag) => tag.id),
       };
-      console.log(itemData.share_slug);
       if (itemId) {
         const updatedItem = await api.put<Item>(`/items/${itemId}`, itemData);
         showToast('success', 'Item updated successfully');
@@ -193,8 +181,7 @@ export function ItemForm({ itemId, onNavigate }: ItemFormProps) {
           setShareSlug(updatedItem.share_slug);
         }
       } else {
-        const res = await api.post<Item>('/items', itemData);
-        console.log(res);
+        await api.post<Item>('/items', itemData);
         showToast('success', 'Item created successfully');
         clearDraft();
         resetForm();
@@ -217,7 +204,6 @@ export function ItemForm({ itemId, onNavigate }: ItemFormProps) {
     itemId,
     user,
     showToast,
-    generateSlug,
     clearDraft,
     resetForm,
     onNavigate
@@ -230,7 +216,6 @@ export function ItemForm({ itemId, onNavigate }: ItemFormProps) {
     if (itemId) {
       fetchItem();
     } else {
-      clearDraft();
       loadDraft();
       setInitialLoading(false);
     }

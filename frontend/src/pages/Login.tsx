@@ -44,11 +44,7 @@ export function Login({ onSwitchToSignup }: LoginProps) {
     setLoading(false);
 
     if (error) {
-      if (error.message.includes('Invalid login credentials')) {
-        showToast('error', 'Invalid email or password');
-      } else {
-        showToast('error', error.message);
-      }
+      showToast('error', error.message);
     } else {
       showToast('success', 'Welcome back!');
     }

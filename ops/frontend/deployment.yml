@@ -26,6 +26,8 @@ spec:
         env:
         - name: VITE_API_BASE_URL
           value: /api
+        - name: BACKEND_UPSTREAM
+          value: thoughtcache-backend-service.backend-space.svc.cluster.local:3000
         ports:
         - containerPort: 80
 

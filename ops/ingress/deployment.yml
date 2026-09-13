@@ -2,10 +2,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: thoughtcache-ingress
+  # An Ingress can only route to Services in its own namespace — it must live
+  # in frontend-space alongside thoughtcache-frontend-service.
+  namespace: frontend-space
 spec:
   ingressClassName: nginx
   rules:
-  - host: domain
+  - host: domain # TODO: replace with the real domain before applying
     http:
       paths:
       - path: /
@@ -13,6 +16,5 @@ spec:
         backend:
           service:
             name: thoughtcache-frontend-service
-            namespace: frontend-space
             port:
               number: 80

@@ -4,6 +4,7 @@ import { Item } from '../models/Item';
 import { ItemTag } from '../models/ItemTag';
 import { Tag } from '../models/Tag';
 import { generateSlug, ensureUniqueSlug } from '../utils/slug';
+import { escapeRegex } from '../utils/regex';
 import mongoose from 'mongoose';
 
 export const listItems = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -18,9 +19,10 @@ export const listItems = async (req: AuthRequest, res: Response): Promise<void> 
     }
 
     if (search) {
+      const safeSearch = escapeRegex(String(search));
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
+        { title: { $regex: safeSearch, $options: 'i' } },
+        { content: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 
@@ -125,11 +127,14 @@ export const createItem = async (req: AuthRequest, res: Response): Promise<void>
     await item.save();
 
     if (tag_ids && Array.isArray(tag_ids) && tag_ids.length > 0) {
-      const itemTags = tag_ids.map((tagId: string) => ({
-        item_id: item._id,
-        tag_id: tagId,
-      }));
-      await ItemTag.insertMany(itemTags);
+      const ownedTags = await Tag.find({ _id: { $in: tag_ids }, user_id: userId });
+      if (ownedTags.length > 0) {
+        const itemTags = ownedTags.map((tag) => ({
+          item_id: item._id,
+          tag_id: tag._id,
+        }));
+        await ItemTag.insertMany(itemTags);
+      }
     }
 
     const itemTags = await ItemTag.find({ item_id: item._id });
@@ -181,12 +186,12 @@ export const updateItem = async (req: AuthRequest, res: Response): Promise<void>
     if (source_url !== undefined) item.source_url = source_url;
     if (is_public !== undefined) item.is_public = is_public;
 
-    if (is_public && (isBecomingPublic || !item.share_slug)) {
+    if (item.is_public && (isBecomingPublic || !item.share_slug)) {
       const slugToUse = share_slug || generateSlug(item.title);
       item.share_slug = await ensureUniqueSlug(slugToUse, id);
-    } else if (is_public && share_slug && share_slug !== item.share_slug) {
+    } else if (item.is_public && share_slug && share_slug !== item.share_slug) {
       item.share_slug = await ensureUniqueSlug(share_slug, id);
-    } else if (!is_public) {
+    } else if (!item.is_public) {
       item.share_slug = null;
     }
 
@@ -195,11 +200,14 @@ export const updateItem = async (req: AuthRequest, res: Response): Promise<void>
     if (tag_ids !== undefined) {
       await ItemTag.deleteMany({ item_id: item._id });
       if (Array.isArray(tag_ids) && tag_ids.length > 0) {
-        const itemTags = tag_ids.map((tagId: string) => ({
-          item_id: item._id,
-          tag_id: tagId,
-        }));
-        await ItemTag.insertMany(itemTags);
+        const ownedTags = await Tag.find({ _id: { $in: tag_ids }, user_id: userId });
+        if (ownedTags.length > 0) {
+          const itemTags = ownedTags.map((tag) => ({
+            item_id: item._id,
+            tag_id: tag._id,
+          }));
+          await ItemTag.insertMany(itemTags);
+        }
       }
     }
 

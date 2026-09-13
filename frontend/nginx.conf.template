@@ -5,7 +5,7 @@ server {
     index index.html;
 
     location /api {
-        proxy_pass http://thoughtcache-backend-service.backend-space.svc.cluster.local:3000;
+        proxy_pass http://${BACKEND_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

@@ -79,12 +79,26 @@ export function Collections() {
     };
 
     const handleItemShare = async (itemId: string) => {
+        const item = collections
+            .flatMap((collection) => collection.items)
+            .find((i) => i.id === itemId);
+        if (!item) return;
+
+        if (!item.is_public) {
+            showToast('info', 'This item must be public to share. Redirecting to edit...');
+            setTimeout(() => navigate(`/edit/${itemId}`), 1000);
+            return;
+        }
+
         try {
-            const item = await api.put<Item>(`/items/${itemId}/share`, {});
-            if (item.is_public && item.share_slug) {
-                const shareUrl = `${window.location.origin}/shared/${item.share_slug}`;
+            const targetItem = item.share_slug ? item : await api.get<Item>(`/items/${itemId}`);
+            if (targetItem.share_slug) {
+                const shareUrl = `${window.location.origin}/shared/${targetItem.share_slug}`;
                 await navigator.clipboard.writeText(shareUrl);
                 showToast('success', 'Share link copied to clipboard!');
+                if (!item.share_slug) fetchCollections();
+            } else {
+                showToast('error', 'Failed to generate share link');
             }
         } catch (error) {
             showToast('error', getErrorMessage(error));
@@ -93,7 +107,7 @@ export function Collections() {
 
     const handleItemToggleStar = async (itemId: string) => {
         try {
-            await api.put(`/items/${itemId}/star`, {});
+            await api.patch<Item>(`/items/${itemId}/star`);
             showToast('success', 'Item starred successfully');
             // Refresh collections to update star status
             fetchCollections();
