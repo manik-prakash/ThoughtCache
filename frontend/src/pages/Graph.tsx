@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ForceGraph2D from 'react-force-graph-2d';
 import { Network } from 'lucide-react';
@@ -7,11 +7,34 @@ import { Spinner } from '../components/ui/Spinner';
 import { useToast } from '../components/ui/Toast';
 import { api } from '../lib/httpClient';
 import { getErrorMessage } from '../lib/utils';
-import type { GraphResponse, GraphTag } from '../lib/types';
+import type { GraphNode, GraphResponse, GraphTag } from '../lib/types';
 
 const NEUTRAL_NODE_COLOR = '#4b5563';
 const DIMMED_COLOR = '#2d333b';
 const SEMANTIC_EDGE_COLOR = '#6b7280';
+const LEGEND_TAG_SWATCH_COLOR = '#8b949e';
+
+/** A node as the force-graph runtime sees it (simulation adds x/y). */
+interface ForceGraphNode extends GraphNode {
+  x?: number;
+  y?: number;
+}
+
+/**
+ * A link as the force-graph runtime sees it: source/target start as id strings
+ * and are replaced by node object references once the simulation ingests them.
+ */
+interface ForceGraphLink {
+  source: string | ForceGraphNode;
+  target: string | ForceGraphNode;
+  kind: 'tag' | 'semantic';
+  shared_tags: GraphTag[];
+  score?: number;
+}
+
+function endpointId(endpoint: string | ForceGraphNode): string {
+  return typeof endpoint === 'string' ? endpoint : endpoint.id;
+}
 
 function tagColor(tagId: string): string {
   let hash = 0;
@@ -25,8 +48,11 @@ function tagColor(tagId: string): string {
 export function Graph() {
   const [data, setData] = useState<GraphResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -36,8 +62,12 @@ export function Graph() {
       try {
         const result = await api.get<GraphResponse>('/graph');
         if (!cancelled) setData(result);
-      } catch (error) {
-        if (!cancelled) showToast('error', getErrorMessage(error));
+      } catch (err) {
+        if (!cancelled) {
+          const message = getErrorMessage(err);
+          setError(message);
+          showToast('error', message);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -46,6 +76,21 @@ export function Graph() {
       cancelled = true;
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ForceGraph2D defaults width/height to the window size and has no resize
+  // handling, so measure the container and pass explicit dimensions.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, error, data]);
 
   const allTags = useMemo(() => {
     if (!data) return [];
@@ -56,12 +101,25 @@ export function Graph() {
     return Array.from(map.values());
   }, [data]);
 
+  const nodesById = useMemo(() => {
+    const map = new Map<string, GraphNode>();
+    for (const node of data?.nodes ?? []) map.set(node.id, node);
+    return map;
+  }, [data]);
+
+  // Must only change when the fetched data changes: a new graphData object
+  // identity re-heats the whole force simulation.
+  const graphData = useMemo(
+    () => ({ nodes: data?.nodes ?? [], links: data?.edges ?? [] }),
+    [data]
+  );
+
   const neighborIds = useMemo(() => {
     if (!data || !hoveredNodeId) return null;
     const ids = new Set<string>([hoveredNodeId]);
     for (const edge of data.edges) {
-      const source = typeof edge.source === 'string' ? edge.source : (edge.source as any).id;
-      const target = typeof edge.target === 'string' ? edge.target : (edge.target as any).id;
+      const source = endpointId(edge.source);
+      const target = endpointId(edge.target);
       if (source === hoveredNodeId) ids.add(target);
       if (target === hoveredNodeId) ids.add(source);
     }
@@ -77,16 +135,34 @@ export function Graph() {
     });
   };
 
-  const isDimmed = (nodeId: string): boolean => {
-    if (!data || selectedTagIds.size === 0) return false;
-    const node = data.nodes.find((n) => n.id === nodeId);
+  const isTagFiltered = (nodeId: string): boolean => {
+    if (selectedTagIds.size === 0) return false;
+    const node = nodesById.get(nodeId);
     return !node?.tags.some((t) => selectedTagIds.has(t.id));
   };
+
+  // A node dims if the tag filter excludes it, or a hover is active and the
+  // node is neither the hovered node nor one of its direct neighbors.
+  const isDimmed = (nodeId: string): boolean =>
+    isTagFiltered(nodeId) || (neighborIds !== null && !neighborIds.has(nodeId));
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <Card className="p-12 text-center">
+          <Network size={48} className="mx-auto text-gray-400 mb-4" />
+          <h3 className="text-xl font-semibold text-text-primary mb-2">Couldn't load the graph</h3>
+          <p className="text-text-muted">{error}</p>
+          <p className="text-text-muted mt-2">Please try again in a moment.</p>
+        </Card>
       </div>
     );
   }
@@ -117,8 +193,11 @@ export function Graph() {
 
       <div className="flex items-center gap-4 px-6 py-3 text-sm text-text-muted">
         <span className="flex items-center gap-2">
-          <span className="inline-block w-5 h-0.5" style={{ backgroundColor: '#0acffe' }} />
-          shared tag
+          <span
+            className="inline-block w-5 h-0.5"
+            style={{ backgroundColor: LEGEND_TAG_SWATCH_COLOR }}
+          />
+          shared tag (colored by tag)
         </span>
         <span className="flex items-center gap-2">
           <span
@@ -154,28 +233,43 @@ export function Graph() {
         </div>
       )}
 
-      <div className="flex-1 min-h-0">
-        <ForceGraph2D
-          graphData={{ nodes: data.nodes as any, links: data.edges as any }}
-          nodeId="id"
-          nodeLabel="title"
-          nodeColor={(node: any) =>
-            isDimmed(node.id) ? DIMMED_COLOR : node.tags?.[0] ? tagColor(node.tags[0].id) : NEUTRAL_NODE_COLOR
-          }
-          linkColor={(link: any) =>
-            link.kind === 'tag' && link.shared_tags?.[0] ? tagColor(link.shared_tags[0].id) : SEMANTIC_EDGE_COLOR
-          }
-          linkLineDash={(link: any) => (link.kind === 'semantic' ? [2, 2] : null)}
-          linkWidth={(link: any) => {
-            if (!neighborIds) return 1;
-            const source = typeof link.source === 'string' ? link.source : link.source.id;
-            const target = typeof link.target === 'string' ? link.target : link.target.id;
-            return neighborIds.has(source) && neighborIds.has(target) ? 2.5 : 1;
-          }}
-          onNodeHover={(node: any) => setHoveredNodeId(node?.id ?? null)}
-          onNodeClick={(node: any) => navigate(`/item/${node.id}`)}
-          backgroundColor="#0a0f14"
-        />
+      <div ref={containerRef} className="flex-1 min-h-0">
+        {size.width > 0 && size.height > 0 && (
+          <ForceGraph2D
+            width={size.width}
+            height={size.height}
+            graphData={graphData}
+            nodeId="id"
+            nodeLabel="title"
+            nodeColor={(node: ForceGraphNode) =>
+              isDimmed(node.id)
+                ? DIMMED_COLOR
+                : node.tags?.[0]
+                  ? tagColor(node.tags[0].id)
+                  : NEUTRAL_NODE_COLOR
+            }
+            linkColor={(link: ForceGraphLink) =>
+              link.kind === 'tag' && link.shared_tags?.[0]
+                ? tagColor(link.shared_tags[0].id)
+                : SEMANTIC_EDGE_COLOR
+            }
+            linkLineDash={(link: ForceGraphLink) => (link.kind === 'semantic' ? [2, 2] : null)}
+            linkLabel={(link: ForceGraphLink) =>
+              link.kind === 'semantic'
+                ? `similar (${Math.round((link.score ?? 0) * 100)}%)`
+                : link.shared_tags.map((t) => t.name).join(', ')
+            }
+            linkWidth={(link: ForceGraphLink) => {
+              if (!hoveredNodeId) return 1;
+              const source = endpointId(link.source);
+              const target = endpointId(link.target);
+              return source === hoveredNodeId || target === hoveredNodeId ? 2.5 : 1;
+            }}
+            onNodeHover={(node: ForceGraphNode | null) => setHoveredNodeId(node?.id ?? null)}
+            onNodeClick={(node: ForceGraphNode) => navigate(`/item/${node.id}`)}
+            backgroundColor="#0a0f14"
+          />
+        )}
       </div>
     </div>
   );

@@ -52,7 +52,7 @@ GET /api/graph (authenticate) ──▶ graphController.ts
   1. `_get_collection().get(where={"user_id": user_id}, include=["embeddings", "metadatas"])` — one call, all this user's chunk vectors.
   2. Group by `metadata["item_id"]`, mean-pool each item's chunk vectors into a single vector (handles items with multiple chunks without biasing toward longer items via raw chunk-count).
   3. Compute the full pairwise cosine-similarity matrix with numpy across that user's item vectors.
-  4. Keep pairs with similarity ≥ `settings.GRAPH_SIMILARITY_THRESHOLD`, then cap each item to its top `settings.GRAPH_MAX_NEIGHBORS` by score (prevents a dense hairball for users with many similar items).
+  4. Keep pairs with similarity ≥ `settings.GRAPH_SIMILARITY_THRESHOLD`, then cap each item to its top `settings.GRAPH_MAX_NEIGHBORS` by score (prevents a dense hairball for users with many similar items). Note the cap is applied per-item during pair generation, so a given node's final edge count in the merged graph can exceed `GRAPH_MAX_NEIGHBORS` if other items independently nominated it as one of their own top neighbors — this is expected behavior, not a bug.
   5. Return `[{item_id_a, item_id_b, score}]`, deduped (unordered pair).
   - Users with 0–1 items (or 0–1 distinct item vectors) → return `[]` immediately, skip the matrix math.
 - **`rag/app/config.py`** — add `GRAPH_SIMILARITY_THRESHOLD: float = 0.55` and `GRAPH_MAX_NEIGHBORS: int = 3`.
