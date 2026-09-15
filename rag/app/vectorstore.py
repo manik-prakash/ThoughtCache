@@ -61,3 +61,12 @@ def query_similar(user_id: str, query_embedding: list[float], top_k: int) -> dic
         where={"user_id": user_id},
         include=["documents", "metadatas", "distances"],
     )
+
+
+def get_user_chunks(user_id: str) -> dict:
+    # Second (and last) Chroma read point in this module, alongside
+    # query_similar — also scoped by user_id for the same isolation reason.
+    return _get_collection().get(
+        where={"user_id": user_id},
+        include=["embeddings", "metadatas"],
+    )

@@ -24,6 +24,7 @@ export function AppShell({ children }: AppShellProps) {
     if (pathname === '/tags') return 'tags';
     if (pathname === '/shared') return 'shared';
     if (pathname === '/ask') return 'ask';
+    if (pathname === '/graph') return 'graph';
     return 'dashboard';
   };
 
