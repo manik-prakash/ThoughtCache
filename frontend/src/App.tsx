@@ -14,6 +14,7 @@ import { Tags } from './pages/Tags';
 import { Collections } from './pages/Collections';
 import { Shared } from './pages/Shared';
 import { Ask } from './pages/Ask';
+import { Graph } from './pages/Graph';
 import { AppShell } from './components/layout/AppShell';
 import { Spinner } from './components/ui/Spinner';
 import './App.css';
@@ -202,6 +203,14 @@ function AppRouter() {
           element={
             <ProtectedRoute>
               <Ask />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/graph"
+          element={
+            <ProtectedRoute>
+              <Graph />
             </ProtectedRoute>
           }
         />

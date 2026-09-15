@@ -30,3 +30,13 @@ class QueryResponse(BaseModel):
     answer: str
     sources: list[QuerySource]
     has_context: bool
+
+
+class SimilarPair(BaseModel):
+    item_id_a: str
+    item_id_b: str
+    score: float
+
+
+class SimilarItemsResponse(BaseModel):
+    pairs: list[SimilarPair]

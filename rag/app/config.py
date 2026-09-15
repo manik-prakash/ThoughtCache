@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP: int = 150
     RAG_TOP_K: int = 5
 
+    GRAPH_SIMILARITY_THRESHOLD: float = 0.55
+    GRAPH_MAX_NEIGHBORS: int = 3
+
 
 @lru_cache
 def get_settings() -> Settings:

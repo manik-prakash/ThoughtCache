@@ -68,3 +68,30 @@ export interface RagQueryResponse {
   has_context: boolean;
 }
 
+export interface GraphTag {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
+export interface GraphNode {
+  id: string;
+  title: string;
+  type: string;
+  is_starred: boolean;
+  tags: GraphTag[];
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  kind: 'tag' | 'semantic';
+  shared_tags: GraphTag[];
+  score?: number;
+}
+
+export interface GraphResponse {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+

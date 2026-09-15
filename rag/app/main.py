@@ -3,12 +3,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
 from app.embeddings import get_model
+from app.graph import compute_similar_pairs
 from app.rag_service import answer_question, ingest_item
 from app.schemas import (
     IngestPayload,
     IngestResponse,
     QueryPayload,
     QueryResponse,
+    SimilarItemsResponse,
 )
 from app.vectorstore import delete_item_chunks
 
@@ -56,5 +58,14 @@ def query(payload: QueryPayload):
         raise HTTPException(status_code=400, detail="question is required")
     try:
         return answer_question(payload.user_id, payload.question)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/graph/similar-items", response_model=SimilarItemsResponse)
+def graph_similar_items(user_id: str):
+    try:
+        pairs = compute_similar_pairs(user_id)
+        return SimilarItemsResponse(pairs=pairs)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,4 +1,4 @@
-import { BrainCircuit, LayoutDashboard, Plus, FolderOpen, Tag, Share2, Settings, LogOut, Menu, X, Sparkles } from 'lucide-react';
+import { BrainCircuit, LayoutDashboard, Plus, FolderOpen, Tag, Share2, Settings, LogOut, Menu, X, Sparkles, Network } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar } from '../ui/Avatar';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +21,7 @@ export function Sidebar({ currentView, onLogout, userDisplayName, userAvatar }: 
     { id: 'tags', label: 'Tags', icon: <Tag size={20} />, path: '/tags' },
     { id: 'shared', label: 'Shared', icon: <Share2 size={20} />, path: '/shared' },
     { id: 'ask', label: 'Ask', icon: <Sparkles size={20} />, path: '/ask' },
+    { id: 'graph', label: 'Graph', icon: <Network size={20} />, path: '/graph' },
   ];
 
   const bottomItems = [
