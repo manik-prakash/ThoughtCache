@@ -1,7 +1,14 @@
 import { motion } from 'framer-motion';
 import { BrainCircuit } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { Spinner } from '../ui/Spinner';
 
-export function DemoSection() {
+interface DemoSectionProps {
+    onTryDemo: () => void;
+    isTryingDemo?: boolean;
+}
+
+export function DemoSection({ onTryDemo, isTryingDemo = false }: DemoSectionProps) {
     return (
         <section id="demo" className="py-20">
             <motion.div
@@ -27,9 +34,9 @@ export function DemoSection() {
                 className="relative rounded-3xl overflow-hidden border border-[#1a232c] bg-linear-to-br from-[#11181f] to-[#0a0f14] p-8 md:p-12"
             >
                 <div className="aspect-video bg-[#0a0f14] rounded-2xl border border-[#0acffe]/30 flex items-center justify-center backdrop-blur-sm">
-                    <div className="text-center">
+                    <div className="text-center px-6">
                         <motion.div
-                            animate={{
+                            animate={isTryingDemo ? {} : {
                                 scale: [1, 1.05, 1],
                                 rotate: [0, 5, -5, 0]
                             }}
@@ -37,12 +44,28 @@ export function DemoSection() {
                         >
                             <BrainCircuit className="text-[#0acffe] mx-auto mb-4" size={64} />
                         </motion.div>
-                        <p className="text-text-muted text-lg">
-                            Interactive demo coming soon
+                        <p className="text-text-primary text-lg font-medium mb-2">
+                            Try it yourself — no signup required
                         </p>
-                        <p className="text-text-muted text-sm mt-2">
-                            Click "Get Started" to try it now
+                        <p className="text-text-muted text-sm mb-6 max-w-md mx-auto">
+                            We'll spin up a real, private demo account pre-loaded with sample notes, links, and tags. It's automatically deleted after 24 hours.
                         </p>
+                        <motion.div
+                            whileHover={isTryingDemo ? {} : { scale: 1.05 }}
+                            whileTap={isTryingDemo ? {} : { scale: 0.95 }}
+                            className="inline-block"
+                        >
+                            <Button onClick={onTryDemo} size="lg" disabled={isTryingDemo} className="gap-2">
+                                {isTryingDemo ? (
+                                    <>
+                                        <Spinner size="sm" className="border-[#0a0f14] border-t-transparent" />
+                                        Setting up your demo…
+                                    </>
+                                ) : (
+                                    'Try the Demo'
+                                )}
+                            </Button>
+                        </motion.div>
                     </div>
                 </div>
             </motion.div>

@@ -4,6 +4,7 @@ import { hashPassword, comparePassword } from '../utils/password';
 export interface IUser extends Document {
   email: string;
   password: string;
+  is_guest: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -23,11 +24,17 @@ const userSchema = new Schema<IUser>(
       minlength: 6,
       select: false,
     },
+    is_guest: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+userSchema.index({ createdAt: 1 }, { partialFilterExpression: { is_guest: true } });
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {

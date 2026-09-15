@@ -4,6 +4,7 @@ export interface ApiUser {
   email: string;
   displayName?: string;
   createdAt?: string;
+  isGuest?: boolean;
 }
 
 export interface Item {

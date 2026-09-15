@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { GuestBanner } from './GuestBanner';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../lib/httpClient';
 import type { ProfileResponse } from '../../lib/types';
@@ -56,9 +57,12 @@ export function AppShell({ children }: AppShellProps) {
         userDisplayName={profile?.display_name || user?.email || 'User'}
         userAvatar={profile?.avatar_url}
       />
-      <main className="flex-1 overflow-y-auto lg:pl-64">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col lg:pl-64">
+        {user?.isGuest && <GuestBanner />}
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

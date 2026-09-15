@@ -9,7 +9,9 @@ I built ThoughtCache as my own personal "second brain" — a place to quickly ca
 - **Star and search** — star the things I want to come back to, and search across titles, content, and tags.
 - **Share selectively** — mark an item public and get a shareable link that anyone can open without an account.
 - **Export everything** — download all my items and tags as a single JSON file whenever I want a full backup.
-- **Ask my own notes** — the newest piece: I can ask a plain-language question and get an answer grounded in what I've actually saved, with links back to the source items. No more scrolling through months of notes trying to remember where I wrote something down.
+- **Ask my own notes** — I can ask a plain-language question and get an answer grounded in what I've actually saved, with links back to the source items. No more scrolling through months of notes trying to remember where I wrote something down.
+- **See how it all connects** — a graph view of my items, linked by shared tags and by semantic similarity (reusing the same embeddings Ask relies on), so I can spot clusters and forgotten threads I wouldn't find by scrolling a list.
+- **Try it without signing up** — click "Try the Demo" and I drop you straight into a real, working account pre-loaded with sample notes, links, and tags — search, tag, star, all of it. It's a throwaway account; I auto-delete it (and everything in it) 24 hours after it's created.
 
 ## How it's built
 
@@ -17,7 +19,7 @@ ThoughtCache is three services:
 
 - **`backend/`** — Node.js, Express, TypeScript, MongoDB (Mongoose). Handles auth (JWT), items, tags, profiles, public sharing, and export.
 - **`frontend/`** — React 19, Vite, TailwindCSS 4, React Router. The whole UI I actually use day to day.
-- **`rag/`** — Python, FastAPI. This is what powers the Ask feature: it chunks and embeds my items locally with `sentence-transformers`, stores the vectors in Chroma Cloud, and calls Google's Gemini API to answer questions grounded in whatever it retrieves. It's an internal-only service — the frontend never talks to it directly, only the Express backend does, after checking who I am.
+- **`rag/`** — Python, FastAPI. This is what powers Ask and the graph view: it chunks and embeds my items locally with `sentence-transformers`, stores the vectors in Chroma Cloud, calls Google's Gemini API to answer questions grounded in whatever it retrieves, and computes item-to-item similarity for the graph's "similar content" edges. It's an internal-only service — the frontend never talks to it directly, only the Express backend does, after checking who I am.
 
 ### How Ask actually works
 
@@ -34,7 +36,7 @@ docker compose up --build
 Before that, I need to fill in:
 - `backend/.env` (copy from `backend/.env.example`) — Mongo URI, JWT secret, etc.
 - `frontend/.env` (copy from `frontend/.env.example`) — API base URL.
-- `rag/.env` (copy from `rag/.env.example`) — my Chroma Cloud tenant/database/API key and my Gemini API key. Without these, item saving still works fine; only the Ask page won't.
+- `rag/.env` (copy from `rag/.env.example`) — my Chroma Cloud tenant/database/API key and my Gemini API key. Without these, item saving still works fine; only Ask and the graph's "similar content" edges won't.
 
 Once it's up: frontend on `http://localhost`, backend on `http://localhost:3000`.
 
