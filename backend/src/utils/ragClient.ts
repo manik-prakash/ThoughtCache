@@ -89,3 +89,29 @@ export async function queryRag(userId: string, question: string): Promise<RagQue
   }
   return res.json();
 }
+
+export interface SimilarItemPair {
+  item_id_a: string;
+  item_id_b: string;
+  score: number;
+}
+
+export async function getSimilarItemPairs(userId: string): Promise<SimilarItemPair[]> {
+  if (!RAG_SERVICE_URL) return [];
+  try {
+    const res = await ragFetch(
+      `/graph/similar-items?user_id=${encodeURIComponent(userId)}`,
+      { method: 'GET' },
+      10000
+    );
+    if (!res.ok) {
+      console.error(`[ragClient] similar-items failed: ${res.status}`);
+      return [];
+    }
+    const data = await res.json();
+    return data.pairs ?? [];
+  } catch (err) {
+    console.error('[ragClient] similar-items error:', err);
+    return [];
+  }
+}

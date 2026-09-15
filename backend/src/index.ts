@@ -13,6 +13,7 @@ import tagRoutes from './routes/tagRoutes';
 import publicRoutes from './routes/publicRoutes';
 import exportRoutes from './routes/exportRoutes';
 import ragRoutes from './routes/ragRoutes';
+import graphRoutes from './routes/graphRoutes';
 
 
 const connectDatabase = async (): Promise<void> => {
@@ -42,6 +43,7 @@ app.use('/api/tags', tagRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/rag', ragRoutes);
+app.use('/api/graph', graphRoutes);
 
 app.use(errorHandler);
 
