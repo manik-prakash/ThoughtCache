@@ -14,6 +14,7 @@ import publicRoutes from './routes/publicRoutes';
 import exportRoutes from './routes/exportRoutes';
 import ragRoutes from './routes/ragRoutes';
 import graphRoutes from './routes/graphRoutes';
+import { startGuestCleanupJob } from './utils/guestCleanup';
 
 
 const connectDatabase = async (): Promise<void> => {
@@ -24,6 +25,8 @@ const connectDatabase = async (): Promise<void> => {
     await mongoose.connect(mongoUri);
     console.log('Database connected');
 };
+
+app.set('trust proxy', 1);
 
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
@@ -50,6 +53,7 @@ app.use(errorHandler);
 const startServer = async (): Promise<void> => {
     try {
         await connectDatabase();
+        startGuestCleanupJob();
         app.listen(process.env.PORT, () => {
             console.log(`Server is running on port ${process.env.PORT}`);
         });

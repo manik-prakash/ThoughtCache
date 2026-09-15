@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import User from '../models/User';
 import { Profile } from '../models/Profile';
 import { generateToken } from '../utils/jwt';
+import { generateGuestCredentials, seedGuestContent } from '../utils/guestSeed';
 import mongoose from 'mongoose';
 
 export const signup = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -33,6 +34,7 @@ export const signup = async (req: AuthRequest, res: Response): Promise<void> => 
         email: user.email,
         displayName: profile.display_name,
         createdAt: (user as any).createdAt,
+        isGuest: user.is_guest,
       },
     });
   } catch (error: any) {
@@ -71,6 +73,7 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
         email: user.email,
         displayName: profile?.display_name || null,
         createdAt: (user as any).createdAt,
+        isGuest: user.is_guest,
       },
     });
   } catch (error: any) {
@@ -98,9 +101,46 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
       email: user.email,
       displayName: profile?.display_name || null,
       createdAt: (user as any).createdAt,
+      isGuest: user.is_guest,
     });
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to get user', message: error.message });
+  }
+};
+
+export const guestSession = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { email, password } = generateGuestCredentials();
+
+    const user = new User({ email, password, is_guest: true });
+    await user.save();
+
+    const profile = new Profile({
+      user_id: (user._id as any),
+      display_name: 'Guest',
+    });
+    await profile.save();
+
+    await seedGuestContent(user._id as any);
+
+    const token = generateToken((user._id as any).toString());
+
+    res.status(201).json({
+      token,
+      user: {
+        id: (user._id as any).toString(),
+        email: user.email,
+        displayName: profile.display_name,
+        createdAt: (user as any).createdAt,
+        isGuest: user.is_guest,
+      },
+    });
+  } catch (error: any) {
+    if (error.code === 11000) {
+      res.status(409).json({ error: 'Could not start demo session, please try again' });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to create demo session', message: error.message });
   }
 };
 
