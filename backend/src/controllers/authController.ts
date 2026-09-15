@@ -108,8 +108,20 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   }
 };
 
+const MAX_ACTIVE_GUESTS = Number(process.env.MAX_ACTIVE_GUESTS) || 200;
+
 export const guestSession = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    // Independent of the per-IP rate limiter (which relies on a
+    // possibly-spoofable X-Forwarded-For — see index.ts), this bounds
+    // total resource consumption (DB writes, storage) regardless of how
+    // many distinct source IPs a request appears to come from.
+    const activeGuests = await User.countDocuments({ is_guest: true });
+    if (activeGuests >= MAX_ACTIVE_GUESTS) {
+      res.status(503).json({ error: 'Demo is at capacity right now, please try again shortly' });
+      return;
+    }
+
     const { email, password } = generateGuestCredentials();
 
     const user = new User({ email, password, is_guest: true });

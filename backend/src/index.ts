@@ -26,6 +26,16 @@ const connectDatabase = async (): Promise<void> => {
     console.log('Database connected');
 };
 
+// Trusts exactly one hop of X-Forwarded-For, matching this app's deployment
+// (ops/ puts a single Ingress in front of the backend Service — see README).
+// This makes req.ip usable for the guest-session rate limiter below, but it
+// is only safe as long as that one hop is a trusted proxy that overwrites
+// (not appends to) X-Forwarded-For; if the app is ever reachable without
+// that proxy in front of it, req.ip becomes attacker-controlled and the
+// per-IP rate limit in middleware/guestRateLimit.ts can be trivially
+// bypassed. guestSession() therefore also enforces an IP-independent global
+// cap (MAX_ACTIVE_GUESTS) so a bypass there still can't cause unbounded
+// resource consumption.
 app.set('trust proxy', 1);
 
 app.use(cors({
