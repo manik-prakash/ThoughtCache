@@ -11,9 +11,11 @@ import { Footer } from '../components/landing/Footer';
 
 interface LandingProps {
   onGetStarted: () => void;
+  onTryDemo: () => void;
+  isTryingDemo?: boolean;
 }
 
-export function Landing({ onGetStarted }: LandingProps) {
+export function Landing({ onGetStarted, onTryDemo, isTryingDemo }: LandingProps) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export function Landing({ onGetStarted }: LandingProps) {
         <FeaturesSection />
         <HowItWorksSection />
         <BenefitsSection />
-        <DemoSection />
+        <DemoSection onTryDemo={onTryDemo} isTryingDemo={isTryingDemo} />
         <CTASection onGetStarted={onGetStarted} />
       </main>
 

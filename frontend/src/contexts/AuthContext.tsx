@@ -12,6 +12,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  tryDemo: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -72,6 +73,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const tryDemo = async () => {
+    try {
+      const response = await api.post<AuthResponse>('/auth/guest');
+      tokenManager.set(response.token);
+      setUser(response.user);
+      return { error: null };
+    } catch (error: unknown) {
+      return {
+        error: {
+          message: getErrorMessage(error),
+        },
+      };
+    }
+  };
+
   const signOut = async () => {
     try {
       await api.post('/auth/logout');
@@ -84,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, tryDemo, signOut }}>
       {children}
     </AuthContext.Provider>
   );

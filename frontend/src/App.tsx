@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ToastProvider } from './components/ui/Toast';
+import { ToastProvider, useToast } from './components/ui/Toast';
 import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
@@ -107,8 +107,21 @@ function PublicSharedWrapper() {
 }
 
 function AppRouter() {
-  const { user, loading } = useAuth();
+  const { user, loading, tryDemo } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
+  const [isStartingDemo, setIsStartingDemo] = useState(false);
+
+  const handleTryDemo = async () => {
+    setIsStartingDemo(true);
+    const { error } = await tryDemo();
+    setIsStartingDemo(false);
+    if (error) {
+      showToast('error', error.message || "Couldn't start the demo. Please try again.");
+      return;
+    }
+    navigate('/dashboard');
+  };
 
   if (loading) {
     return (
@@ -121,7 +134,16 @@ function AppRouter() {
   if (!user) {
     return (
       <Routes>
-        <Route path="/" element={<Landing onGetStarted={() => navigate('/signup')} />} />
+        <Route
+          path="/"
+          element={
+            <Landing
+              onGetStarted={() => navigate('/signup')}
+              onTryDemo={handleTryDemo}
+              isTryingDemo={isStartingDemo}
+            />
+          }
+        />
         <Route path="/login" element={<Login onSwitchToSignup={() => navigate('/signup')} />} />
         <Route path="/signup" element={<Signup onSwitchToLogin={() => navigate('/login')} />} />
         <Route path="/shared/:slug" element={<PublicSharedWrapper />} />
