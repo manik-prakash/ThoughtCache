@@ -9,7 +9,10 @@ def compute_similar_pairs(user_id: str) -> list[SimilarPair]:
     settings = get_settings()
     raw = get_user_chunks(user_id)
 
-    embeddings = raw.get("embeddings") or []
+    # Chroma returns embeddings as a numpy ndarray, so `or []` would raise
+    # "truth value of an array is ambiguous". Normalize to a plain list instead.
+    embeddings = raw.get("embeddings")
+    embeddings = [] if embeddings is None else list(embeddings)
     metadatas = raw.get("metadatas") or []
     if len(embeddings) == 0:
         return []

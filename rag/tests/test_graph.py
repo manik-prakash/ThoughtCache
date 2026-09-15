@@ -1,3 +1,5 @@
+import numpy as np
+
 from app import graph as graph_module
 
 
@@ -69,3 +71,25 @@ def test_empty_when_no_chunks(monkeypatch):
     )
 
     assert graph_module.compute_similar_pairs("user-1") == []
+
+
+def test_handles_real_chroma_ndarray_shape(monkeypatch):
+    # Chroma returns embeddings as a numpy ndarray, not a plain list.
+    monkeypatch.setattr(graph_module, "get_settings", lambda: FakeSettings())
+    monkeypatch.setattr(
+        graph_module,
+        "get_user_chunks",
+        lambda user_id: {
+            "embeddings": np.array([[1.0, 0.0], [1.0, 0.0], [0.0, 1.0]]),
+            "metadatas": [
+                {"item_id": "a"},
+                {"item_id": "b"},
+                {"item_id": "c"},
+            ],
+        },
+    )
+
+    pairs = graph_module.compute_similar_pairs("user-1")
+    pair_keys = {frozenset((p.item_id_a, p.item_id_b)) for p in pairs}
+
+    assert frozenset(("a", "b")) in pair_keys
